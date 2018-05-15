@@ -1,11 +1,15 @@
 pragma solidity ^0.4.17;
 
 contract VotethSubjectFactory {
-    VotethSubject[] public votethSubjects;
+    address[] public votethSubjects;
     
     function addSubject(string _subject, string _description) public {
-        VotethSubject votethSubject = new VotethSubject(_subject, _description, msg.sender);
+        address votethSubject = new VotethSubject(_subject, _description, msg.sender);
         votethSubjects.push(votethSubject);
+    }
+    
+    function getSubjects() public view returns(address[]) {
+        return votethSubjects;
     }
 }
 
