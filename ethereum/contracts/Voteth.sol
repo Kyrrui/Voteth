@@ -30,16 +30,18 @@ contract VotethSubject {
         votethPosts.push(votethPost);
     }
     
-    function editDescription(string _newDescription) public {
-        require(adminList[msg.sender]);
+    function editDescription(string _newDescription) public adminAccess {
         description = _newDescription;
     }
     
-    function addAdmin(address _newAdmin) public {
-        require(adminList[msg.sender]);
+    function addAdmin(address _newAdmin) public adminAccess {
         adminList[_newAdmin] = true;
     }
     
+    modifier adminAccess() {
+        require(adminList[msg.sender]);
+        _;
+    }
 }
 
 contract VotethPost {
@@ -55,12 +57,14 @@ contract VotethPost {
     uint public ethBalance = 0;
     bool public isRecent = true;
     VotethComment[] public votethComments;
+    address public votethCommentMaker;
     
     constructor(string _title, string _content, string _nickname, address _author) public {
         title = _title;
         content = _content;
         nickname = _nickname;
         author = _author;
+        votethCommentMaker = new VotethCommentMaker();
     }
     
     function editContent(string _newTitle, string _newContent) public {
@@ -78,7 +82,7 @@ contract VotethPost {
     }
     
     function addComment(string _comment, string _nickname) public {
-        VotethComment comment = new VotethComment(_comment, _nickname, msg.sender);
+        VotethComment comment = new VotethComment(_comment, _nickname, msg.sender, votethCommentMaker);
         votethComments.push(comment);
     }
     
@@ -98,7 +102,6 @@ contract VotethPost {
 }
 
 
-// TODO: IMPLEMENT COMMENT CHAINS
 contract VotethComment {
     string public comment;
     address public author;
@@ -109,11 +112,19 @@ contract VotethComment {
     int public commentScore = 0;
     uint public ethScore = 0;
     uint public ethBalance = 0;
+    address[] public votethComments;
+    address votethCommentMaker;
 
-    constructor(string _comment, string _nickname, address _author) public {
+    constructor(string _comment, string _nickname, address _author, address _votethCommentMaker) public {
         comment = _comment;
         nickname = _nickname;
         author = _author;
+        votethCommentMaker = _votethCommentMaker;
+    }
+    
+    function addComment(string _comment, string _nickname) public {
+        VotethCommentSupplier votethCommentSupplier = VotethCommentSupplier(votethCommentMaker);
+        votethComments.push(votethCommentSupplier.makeComment(_comment, _nickname, msg.sender));
     }
     
     function editComment(string _newComment) public {
@@ -141,5 +152,14 @@ contract VotethComment {
         commentScore++;
         ethScore += msg.value; //TODO: Make this safe math
         ethBalance += msg.value;
+    }
+}
+contract VotethCommentSupplier {
+   function makeComment(string _comment, string _nickname, address _author) public returns(address);
+}
+
+contract VotethCommentMaker {
+    function makeComment(string _comment, string _nickname, address _author) public returns(address) {
+        return new VotethComment(_comment, _nickname, _author, this);
     }
 }
