@@ -49,13 +49,10 @@ contract VotethPost {
     string public content;
     address public author;
     string public nickname;
-    uint public lastEdited = now;
-    bool public wasEdited = false;
     mapping (address => bool) voteList;
     int public commentScore = 0;
     uint public ethScore = 0;
     uint public ethBalance = 0;
-    bool public isRecent = true;
     VotethComment[] public votethComments;
     address public votethCommentMaker;
     
@@ -71,8 +68,6 @@ contract VotethPost {
         require(msg.sender == author);
         title = _newTitle;
         content = _newContent;
-        wasEdited = true;
-        lastEdited = now;
     }
     
     function withdrawEth() public {
@@ -106,8 +101,6 @@ contract VotethComment {
     string public comment;
     address public author;
     string public nickname;
-    uint public lastEdited = now;
-    bool public wasEdited = false;
     mapping (address => bool) voteList;
     int public commentScore = 0;
     uint public ethScore = 0;
@@ -130,8 +123,6 @@ contract VotethComment {
     function editComment(string _newComment) public {
         require(msg.sender == author);
         comment = _newComment;
-        wasEdited = true;
-        lastEdited = now;
     }
     
     function withdrawEth() public {
